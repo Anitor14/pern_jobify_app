@@ -22,13 +22,35 @@ const register = async (req, res) => {
   }
   const user = await User.create({ name, email, password });
   // create a tokenUser from the user.
-  const tokenUser = res.status(StatusCodes.CREATED).json({
-    user,
-  });
+  const tokenUser = createTokenUser(user);
+  // attaching cookies to response
+  attachCookiesToResponse({ res, user: tokenUser });
+  res.status(StatusCodes.CREATED).json({ user: user });
 };
 
 const login = async (req, res) => {
-  res.send("login");
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new CustomError.BadRequestError("please provide email and password");
+  }
+
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new CustomError.UnauthenticatedError("this user does not exist");
+  }
+
+  // compare password
+  const isPasswordCorrect = await user.comparePassword(password);
+
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError("invalid Credentials");
+  }
+
+  const tokenUser = createTokenUser(user);
+  // attaching cookies to response
+  attachCookiesToResponse({ res, user: tokenUser });
+  res.status(StatusCodes.OK).json({ user: user });
 };
 
 const updateUser = async (req, res) => {

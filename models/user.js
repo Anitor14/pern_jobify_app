@@ -67,6 +67,13 @@ module.exports = (sequelize, DataTypes) => {
       tableName: "users",
       modelName: "User",
     }
+    // {
+    //   instanceMethods: {
+    //     validPassword: async function (password) {
+    //       return await bcrypt.compare(password, this.password);
+    //     },
+    //   },
+    // }
   );
   // this is happens before the model is created.
   User.beforeCreate(async function (user) {
@@ -74,5 +81,8 @@ module.exports = (sequelize, DataTypes) => {
       user.password = await bcrypt.hash(user.password, 10);
     }
   });
+  User.prototype.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+  };
   return User;
 };
