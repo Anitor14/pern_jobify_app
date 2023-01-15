@@ -34,7 +34,10 @@ app.use(xss());
 app.use(mongoSanitize());
 
 // to access middleware we use app.use().
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 app.use(express.json()); //we want to have access to the json data in our req.body.
 app.use(cookieParser(process.env.JWT_SECRET)); // enables us to have access to cookies in the req.cookies.
 
@@ -52,7 +55,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.listen(port, async () => {
   console.log(`Server is listening on port ${port}...`);

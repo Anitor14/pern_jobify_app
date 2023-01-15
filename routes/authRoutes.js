@@ -14,7 +14,7 @@ const {
   updateUser,
   getCurrentUser,
   logout,
-} = require("../controllers/authcontroller");
+} = require("../controllers/authController");
 
 router.route("/register").post(register);
 router.route("/login").post(login);

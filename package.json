@@ -10,13 +10,13 @@
     "build-client": "cd client && npm run build",
     "server": "nodemon server --ignore client",
     "client": "npm start --prefix client",
-    "start": "npm run server"
+    "start": "concurrently --kill-others-on-fail \"npm run server\" \" npm run client\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^6.4.0",
+    "concurrently": "^6.5.1",
     "nodemon": "^2.0.15"
   },
   "dependencies": {

@@ -24,8 +24,17 @@ const register = async (req, res) => {
   // create a tokenUser from the user.
   const tokenUser = createTokenUser(user);
   // attaching cookies to response
-  attachCookiesToResponse({ res, user: tokenUser });
-  res.status(StatusCodes.CREATED).json({ user: user });
+  const token = attachCookiesToResponse({ res, user: tokenUser });
+  res.status(StatusCodes.CREATED).json({
+    user: {
+      email: user.email,
+      lastName: user.lastName,
+      location: user.location,
+      name: user.name,
+    },
+    location: user.location,
+    token,
+  });
 };
 
 const login = async (req, res) => {
@@ -49,8 +58,18 @@ const login = async (req, res) => {
 
   const tokenUser = createTokenUser(user);
   // attaching cookies to response
-  attachCookiesToResponse({ res, user: tokenUser });
-  res.status(StatusCodes.OK).json({ user: user });
+  const token = attachCookiesToResponse({ res, user: tokenUser });
+  user.password = undefined;
+  res.status(StatusCodes.OK).json({
+    user: {
+      email: user.email,
+      lastName: user.lastName,
+      location: user.location,
+      name: user.name,
+    },
+    token,
+    location: user.location,
+  });
 };
 
 const updateUser = async (req, res) => {
