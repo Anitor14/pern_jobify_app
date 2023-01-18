@@ -73,7 +73,24 @@ const login = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  res.send("update User");
+  const { email, name, lastName, location } = req.body;
+  if (!email || !name || !lastName || !location) {
+    throw new CustomError.BadRequestError("Please provide all values");
+  }
+
+  const user = await User.findOne({ where: { id: req.user.userId } });
+  console.log(user);
+  user.email = email;
+  user.name = name;
+  user.lastName = lastName;
+  user.location = location;
+
+  await user.save();
+
+  const tokenUser = createTokenUser(user);
+  const token = attachCookiesToResponse({ res, user: tokenUser });
+
+  res.status(StatusCodes.OK).json({ user, location: user.location });
 };
 
 const getCurrentUser = async (req, res) => {

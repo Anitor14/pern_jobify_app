@@ -16,11 +16,12 @@ const {
   logout,
 } = require("../controllers/authController");
 
+const { authenticateUser } = require("../middleware/auth.js");
 router.route("/register").post(register);
 router.route("/login").post(login);
 router.route("/logout").post(logout);
 
-router.route("/updateUser").patch(updateUser);
+router.route("/updateUser").patch(authenticateUser, updateUser);
 router.route("/getCurrentUser").get(getCurrentUser);
 
 module.exports = router;
