@@ -79,18 +79,13 @@ const updateUser = async (req, res) => {
   }
 
   const user = await User.findOne({ where: { id: req.user.userId } });
-  console.log(user);
-  user.email = email;
-  user.name = name;
-  user.lastName = lastName;
-  user.location = location;
-
   await user.save();
-
+  console.log(user);
+  await user.update({ email, name, lastName, location });
   const tokenUser = createTokenUser(user);
   const token = attachCookiesToResponse({ res, user: tokenUser });
 
-  res.status(StatusCodes.OK).json({ user, location: user.location });
+  res.status(StatusCodes.OK).json({ user, location: user.location, token });
 };
 
 const getCurrentUser = async (req, res) => {
