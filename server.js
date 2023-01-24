@@ -16,6 +16,7 @@ const app = express();
 
 //routers
 const authRoutes = require("./routes/authRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 
 //middleware
 const notFoundMiddleware = require("./middleware/not-found");
@@ -49,6 +50,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/jobs", jobRoutes);
 //routers
 
 //middleware
