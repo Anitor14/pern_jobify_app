@@ -37,6 +37,10 @@ module.exports = {
         allowNull: false,
         defaultValue: "my city",
       },
+      createdBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE,

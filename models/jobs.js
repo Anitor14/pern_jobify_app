@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       const { User } = models;
       // stating that this job was created by a user.
       // this.belongsTo(User, {foreignKey:""})
+      this.belongsTo(User, { foreignKey: "createdBy", as: "user" });
     }
   }
   Jobs.init(
@@ -45,7 +46,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: "my city",
       },
+      createdBy: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
+
     {
       sequelize,
       modelName: "Jobs",
