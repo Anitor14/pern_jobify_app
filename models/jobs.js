@@ -9,6 +9,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      const { User } = models;
+      // stating that this job was created by a user.
+      // this.belongsTo(User, {foreignKey:""})
     }
   }
   Jobs.init(
