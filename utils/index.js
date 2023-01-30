@@ -1,6 +1,7 @@
 const createTokenUser = require("./createTokenUser");
 const { createJWT, isTokenValid, attachCookiesToResponse } = require("./jwt");
 const { getPagination, getPagingData } = require("./paginateUtils");
+const { checkPermissions } = require("./checkPermission");
 
 module.exports = {
   createJWT,
@@ -9,4 +10,5 @@ module.exports = {
   createTokenUser,
   getPagination,
   getPagingData,
+  checkPermissions,
 };
