@@ -132,10 +132,11 @@ const uploadImageToDigitalOcean = async (req, res) => {
       size: Joi.number()
         .max(2 * 1024 * 1024)
         .required(),
-    }).required(),
-  });
+      name: Joi.string(),
+    }),
+  }).options({ allowUnknown: true });
 
-  const imageValidateResult = imageSchema.validate(req.file);
+  const imageValidateResult = imageSchema.validate(req.files);
   if (imageValidateResult.error) {
     return res.status(400).send(imageValidateResult.error.message);
   }
