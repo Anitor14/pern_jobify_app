@@ -155,6 +155,7 @@ const uploadImageToDigitalOcean = async (req, res) => {
       console.log("Your file has been uploaded successfully!", data);
     }
   );
+  fs.unlinkSync(image.tempFilePath);
   // //checking if the bucket exists.
   // s3.headBucket({ Bucket: process.env.DO_SPACES_NAME }, (err, data) => {
   //   if (err) return console.log(err);
