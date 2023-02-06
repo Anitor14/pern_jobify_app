@@ -3,6 +3,8 @@ const Sequelize = require("sequelize");
 // const sequelize = new Sequelize(...);
 // const { fn } = require("fn");
 const CustomError = require("../errors");
+const Joi = require("joi");
+
 const AWS = require("aws-sdk");
 const fs = require("fs");
 const spacesEndpoint = new AWS.Endpoint("fra1.digitaloceanspaces.com");
@@ -123,6 +125,19 @@ const showStats = async (req, res) => {
 };
 
 const uploadImageToDigitalOcean = async (req, res) => {
+  const imageSchema = Joi.object({
+    image: Joi.object({
+      mimetype: Joi.string().valid("image/jpeg").required(),
+      size: Joi.number()
+        .max(2 * 1024 * 1024)
+        .required(),
+    }).required(),
+  });
+
+  const imageValidateResult = imageSchema.validate(req.file);
+  if (imageValidateResult.error) {
+    return res.status(400).send(imageValidateResult.error.message);
+  }
   const { image } = req.files;
   const file = fs.readFileSync(image.tempFilePath);
   // converting it to base64.
