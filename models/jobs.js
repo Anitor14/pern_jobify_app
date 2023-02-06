@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       position: { type: DataTypes.STRING, allowNull: false },
       status: {
         type: DataTypes.ENUM,
-        values: ["interview", "declined", "pending"],
+        values: ["interview", "declined", "pending" ],
         defaultValue: "pending",
       },
       jobType: {

@@ -20,16 +20,19 @@
     "nodemon": "^2.0.15"
   },
   "dependencies": {
+    "aws-sdk": "^2.1309.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
+    "express-fileupload": "^1.4.0",
     "express-mongo-sanitize": "^2.1.0",
     "express-rate-limit": "^6.0.4",
     "helmet": "^5.0.1",
     "http-status-codes": "^2.1.4",
+    "joi": "^17.7.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "mongoose": "^6.0.13",
@@ -38,6 +41,7 @@
     "pg-hstore": "^2.3.4",
     "react-icons": "^4.7.1",
     "sequelize": "^6.28.0",
+    "sequelize-fn": "^1.0.4",
     "validator": "^13.7.0",
     "xss-clean": "^0.1.1"
   }

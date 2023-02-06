@@ -4,9 +4,9 @@ const express = require("express");
 const { sequelize } = require("./models");
 
 // rest of the packages
+const fileUpload = require("express-fileupload");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-// const fileUpload = require("express-fileupload"); // this gives us access to uploaded files.
 const rateLimiter = require("express-rate-limit");
 const helmet = require("helmet");
 const xss = require("xss-clean");
@@ -40,6 +40,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 app.use(express.json()); //we want to have access to the json data in our req.body.
+app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser(process.env.JWT_SECRET)); // enables us to have access to cookies in the req.cookies.
 
 app.use(express.static("./public")); // this would make the public folder available.

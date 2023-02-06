@@ -1,6 +1,24 @@
 const { StatusCodes } = require("http-status-codes");
-const { where } = require("sequelize");
+const Sequelize = require("sequelize");
+// const sequelize = new Sequelize(...);
+// const { fn } = require("fn");
 const CustomError = require("../errors");
+const AWS = require("aws-sdk");
+const fs = require("fs");
+const spacesEndpoint = new AWS.Endpoint("fra1.digitaloceanspaces.com");
+
+// const s3 = new AWS.S3({
+//   endpoint: spacesEndpoint,
+//   accessKeyId: process.env.DO_SPACES_KEY,
+//   secretAccessKey: process.env.DO_SPACES_SECRET,
+// });
+AWS.config.update({
+  accessKeyId: process.env.DO_SPACES_KEY,
+  secretAccessKey: process.env.DO_SPACES_SECRET,
+  endpoint: spacesEndpoint,
+});
+
+const s3 = new AWS.S3();
 const { Jobs } = require("../models");
 const { getPagination, getPagingData, checkPermissions } = require("../utils");
 
@@ -86,4 +104,54 @@ const deleteJob = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Success! job removed." });
 };
 
-module.exports = { createJob, getAllJobs, updateJob, deleteJob };
+const showStats = async (req, res) => {
+  const stats = await Jobs.findAll({
+    where: { createdBy: req.user.userId },
+    attributes: ["status", [Sequelize.fn("COUNT", "status"), "count"]],
+    group: ["status"],
+  });
+
+  stats = stats.reduce((acc, curr) => {
+    const { id } = curr;
+  });
+  // const defaultStats = {
+  //   pending: stats.pending || 0,
+  //   interview: stats.interview || 0,
+  //   declined: stats.declined || 0,
+  // };
+  res.status(StatusCodes.OK).json({ stats });
+};
+
+const uploadImageToDigitalOcean = async (req, res) => {
+  const { image } = req.files;
+  const file = fs.readFileSync(image.tempFilePath);
+  // converting it to base64.
+  const base64File = file.toString("base64");
+  s3.putObject(
+    {
+      Bucket: process.env.DO_SPACES_NAME,
+      Key: image.tempFilePath,
+      Body: base64File,
+      ACL: "public-read",
+    },
+    (err, data) => {
+      if (err) return console.log(err);
+      console.log("Your file has been uploaded successfully!", data);
+    }
+  );
+  // //checking if the bucket exists.
+  // s3.headBucket({ Bucket: process.env.DO_SPACES_NAME }, (err, data) => {
+  //   if (err) return console.log(err);
+  //   console.log("bucket exists");
+  // });
+  return res.json({ message: "file uploaded successfully", file: image });
+};
+
+module.exports = {
+  createJob,
+  getAllJobs,
+  updateJob,
+  deleteJob,
+  showStats,
+  uploadImageToDigitalOcean,
+};
