@@ -125,6 +125,7 @@ const showStats = async (req, res) => {
 };
 
 const uploadImageToDigitalOcean = async (req, res) => {
+  //image validation.
   const imageSchema = Joi.object({
     image: Joi.object({
       mimetype: Joi.string().valid("image/jpeg").required(),
