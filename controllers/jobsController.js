@@ -1,4 +1,5 @@
 const { StatusCodes } = require("http-status-codes");
+const path = require("path");
 const Sequelize = require("sequelize");
 // const sequelize = new Sequelize(...);
 // const { fn } = require("fn");
@@ -113,22 +114,26 @@ const showStats = async (req, res) => {
     group: ["status"],
   });
 
-  stats = stats.reduce((acc, curr) => {
-    const { id } = curr;
-  });
+  // stats = stats.reduce((acc, curr) => {
+  //   const { id: title, count } = curr;
+  //   acc[title] = count;
+  //   return acc;
+  // }, {});
   // const defaultStats = {
   //   pending: stats.pending || 0,
   //   interview: stats.interview || 0,
   //   declined: stats.declined || 0,
   // };
-  res.status(StatusCodes.OK).json({ stats });
+
+  let monthlyApplications = [];
+  res.status(StatusCodes.OK).json({ defaultStats: stats, monthlyApplications });
 };
 
 const uploadImageToDigitalOcean = async (req, res) => {
   //image validation.
   const imageSchema = Joi.object({
     image: Joi.object({
-      mimetype: Joi.string().valid("image/jpeg").required(),
+      // mimetype: Joi.string().valid("image/jpeg").required(),
       size: Joi.number()
         .max(2 * 1024 * 1024)
         .required(),
@@ -137,32 +142,52 @@ const uploadImageToDigitalOcean = async (req, res) => {
   }).options({ allowUnknown: true });
 
   const imageValidateResult = imageSchema.validate(req.files);
+
   if (imageValidateResult.error) {
     return res.status(400).send(imageValidateResult.error.message);
   }
   const { image } = req.files;
   const file = fs.readFileSync(image.tempFilePath);
   // converting it to base64.
-  const base64File = file.toString("base64");
-  s3.putObject(
+  // const base64File = file.toString("base64");
+  // console.log(base64File)
+  // const imageName = path.join(
+  //   __dirname,
+  //   "../public/uploads/" + `${image.name}`
+  // );
+  const imageName = image.name;
+  console.log(imageName);
+  s3.upload(
     {
       Bucket: process.env.DO_SPACES_NAME,
-      Key: image.tempFilePath,
-      Body: base64File,
+      // Key: image.tempFilePath,
+      Key: imageName,
+      Body: file,
       ACL: "public-read",
-    },
-    (err, data) => {
-      if (err) return console.log(err);
-      console.log("Your file has been uploaded successfully!", data);
     }
-  );
-  fs.unlinkSync(image.tempFilePath);
+    // (err, data) => {
+    //   if (err) return console.log(err);
+    //   console.log("Your file has been uploaded successfully!", data);
+    // }
+  ).send((err, data) => {
+    if (err) return res.status(500);
+    // Unlink file
+    fs.unlinkSync(image.tempFilePath);
+    // Return file url or other necessary details
+    return res.send({
+      url: data.Location,
+    });
+  });
+  // fs.unlinkSync(image.tempFilePath);
   // //checking if the bucket exists.
   // s3.headBucket({ Bucket: process.env.DO_SPACES_NAME }, (err, data) => {
   //   if (err) return console.log(err);
   //   console.log("bucket exists");
   // });
-  return res.json({ message: "file uploaded successfully", file: image });
+  // return res.json({
+  //   message: "file uploaded successfully",
+  //   // file: `${process.env.DO_SPACES_ENDPOINT}/${imageName} `,
+  // });
 };
 
 module.exports = {
