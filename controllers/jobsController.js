@@ -63,13 +63,69 @@ const createJob = async (req, res) => {
 // };
 
 const getAllJobs = async (req, res) => {
-  const jobs = await Jobs.findAll({
-    where: { createdBy: req.user.userId },
+  const { search, status, jobType, sort } = req.query;
+
+  const queryObject = { createdBy: req.user.userId };
+
+  if (status !== "all") {
+    queryObject.status = status;
+  }
+
+  if (jobType !== "all") {
+    queryObject.jobType = jobType;
+  }
+
+  if (search) {
+    queryObject.position = { $regex: search, $options: "i" };
+  }
+
+  let result = Jobs.findAll({ where: queryObject });
+
+  //chain sort conditions.
+  if (sort === "latest") {
+    result = Jobs.findAll({
+      where: queryObject,
+      order: [["createdAt", "ASC"]],
+    });
+  }
+  if (sort === "oldest") {
+    result = Jobs.findAll({
+      where: queryObject,
+      order: [["createdAt", "DESC"]],
+    });
+  }
+  if (sort === "a-z") {
+    result = Jobs.findAll({ where: queryObject, order: [["position", "ASC"]] });
+  }
+  if (sort === "z-a") {
+    result = Jobs.findAll({
+      where: queryObject,
+      order: [["position", "DESC"]],
+    });
+  }
+
+  // setup pagination.
+  // const page = Number(req.query.page) || 1;
+  // const limit = Number(req.query.limit) || 1;
+
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 1;
+  console.log('reached here ')
+  const { limitNumber, offset } = getPagination({ page, limit });
+  console.log( limitNumber, offset)
+
+  const { count: totalJobs, rows: jobs } = await Jobs.findAndCountAll({
+    limit,
+    offset,
   });
 
-  res
-    .status(StatusCodes.OK)
-    .json({ jobs, totalJobs: jobs.length, numOfPages: 1 });
+  const { numOfPages, currentpage } = getPagingData({
+    limit,
+    page,
+    totalJobs,
+  });
+
+  res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });
 };
 
 // update job.
@@ -94,6 +150,7 @@ const updateJob = async (req, res) => {
   res.status(StatusCodes.OK).json({ job });
 };
 
+//delete job
 const deleteJob = async (req, res) => {
   const { id: jobId } = req.params;
   const job = await Jobs.findOne({ where: { id: jobId } });
@@ -107,6 +164,7 @@ const deleteJob = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Success! job removed." });
 };
 
+//show stats
 const showStats = async (req, res) => {
   const stats = await Jobs.findAll({
     where: { createdBy: req.user.userId },
@@ -129,6 +187,7 @@ const showStats = async (req, res) => {
   res.status(StatusCodes.OK).json({ defaultStats: stats, monthlyApplications });
 };
 
+// upload imageToDigitalOcean
 const uploadImageToDigitalOcean = async (req, res) => {
   //image validation.
   const imageSchema = Joi.object({
