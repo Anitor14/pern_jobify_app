@@ -65,65 +65,107 @@ const createJob = async (req, res) => {
 const getAllJobs = async (req, res) => {
   const { search, status, jobType, sort } = req.query;
 
-  const queryObject = { createdBy: req.user.userId };
-
-  if (status !== "all") {
-    queryObject.status = status;
-  }
-
-  if (jobType !== "all") {
-    queryObject.jobType = jobType;
-  }
+  const queryObject = {
+    where: { createdBy: req.user.userId },
+  };
 
   if (search) {
-    queryObject.position = { $regex: search, $options: "i" };
+    queryObject.where.position = { [Op.iLike]: `%${search}%` };
+  }
+  if (status !== "all") {
+    queryObject.where.status = status;
+  }
+  if (jobType !== "all") {
+    queryObject.where.jobType = jobType;
   }
 
-  let result = Jobs.findAll({ where: queryObject });
+  let order = [];
 
-  //chain sort conditions.
   if (sort === "latest") {
-    result = Jobs.findAll({
-      where: queryObject,
-      order: [["createdAt", "ASC"]],
-    });
+    order.push(["createdAt", "DESC"]);
   }
   if (sort === "oldest") {
-    result = Jobs.findAll({
-      where: queryObject,
-      order: [["createdAt", "DESC"]],
-    });
+    order.push(["createdAt", "ASC"]);
   }
   if (sort === "a-z") {
-    result = Jobs.findAll({ where: queryObject, order: [["position", "ASC"]] });
+    order.push(["position", "ASC"]);
   }
   if (sort === "z-a") {
-    result = Jobs.findAll({
-      where: queryObject,
-      order: [["position", "DESC"]],
-    });
+    order.push(["position", "DESC"]);
   }
 
-  // setup pagination.
-  // const page = Number(req.query.page) || 1;
-  // const limit = Number(req.query.limit) || 1;
+  if (order.length) {
+    queryObject.order = order;
+  }
 
-  const page = req.query.page || 1;
-  const limit = req.query.limit || 1;
-  console.log('reached here ')
-  const { limitNumber, offset } = getPagination({ page, limit });
-  console.log( limitNumber, offset)
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+  queryObject.limit = limit;
+  queryObject.offset = offset;
+  const { rows: jobs, count: totalJobs } = await Jobs.findAndCountAll(
+    queryObject
+  );
+  const numOfPages = Math.ceil(totalJobs / limit);
+  // const queryObject = { createdBy: req.user.userId };
 
-  const { count: totalJobs, rows: jobs } = await Jobs.findAndCountAll({
-    limit,
-    offset,
-  });
+  // if (status !== "all") {
+  //   queryObject.status = status;
+  // }
 
-  const { numOfPages, currentpage } = getPagingData({
-    limit,
-    page,
-    totalJobs,
-  });
+  // if (jobType !== "all") {
+  //   queryObject.jobType = jobType;
+  // }
+
+  // if (search) {
+  //   queryObject.position = { $regex: search, $options: "i" };
+  // }
+
+  // let result = Jobs.findAll({ where: queryObject });
+
+  // //chain sort conditions.
+  // if (sort === "latest") {
+  //   result = Jobs.findAll({
+  //     where: queryObject,
+  //     order: [["createdAt", "ASC"]],
+  //   });
+  // }
+  // if (sort === "oldest") {
+  //   result = Jobs.findAll({
+  //     where: queryObject,
+  //     order: [["createdAt", "DESC"]],
+  //   });
+  // }
+  // if (sort === "a-z") {
+  //   result = Jobs.findAll({ where: queryObject, order: [["position", "ASC"]] });
+  // }
+  // if (sort === "z-a") {
+  //   result = Jobs.findAll({
+  //     where: queryObject,
+  //     order: [["position", "DESC"]],
+  //   });
+  // }
+
+  // // setup pagination.
+  // // const page = Number(req.query.page) || 1;
+  // // const limit = Number(req.query.limit) || 1;
+
+  // const page = req.query.page || 1;
+  // const limit = req.query.limit || 1;
+  // console.log('reached here ')
+  // const { limitNumber, offset } = getPagination({ page, limit });
+  // console.log( limitNumber, offset)
+
+  // const { count: totalJobs, rows: jobs } = await Jobs.findAndCountAll({
+  //   limit,
+  //   offset,
+  // });
+
+  // const { numOfPages, currentpage } = getPagingData({
+  //   limit,
+  //   page,
+  //   totalJobs,
+  // });
 
   res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });
 };
@@ -187,7 +229,7 @@ const showStats = async (req, res) => {
   res.status(StatusCodes.OK).json({ defaultStats: stats, monthlyApplications });
 };
 
-// upload imageToDigitalOcean
+// upload image ToDigitalOcean
 const uploadImageToDigitalOcean = async (req, res) => {
   //image validation.
   const imageSchema = Joi.object({
